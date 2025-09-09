@@ -1,35 +1,65 @@
 package stack
 
+import (
+	"sync"
+)
+
+type Element struct {
+	Data any
+	next *Element
+}
+
 type Stack struct {
-	Max int
-	Top int
-	Items []int
+	lock *sync.Mutex
+	top  *Element
+	Size int
 }
 
-func NewStack(m int) *Stack {
+func (s *Stack) Push(data any) {
+	s.lock.Lock()
+	defer s.lock.Unlock()
+
+	elm := &Element{
+		Data: data,
+		next: nil,
+	}
+
+	if s.top == nil {
+		s.top = elm
+		s.Size++
+		return
+	}
+
+	elm.next = s.top
+	s.top = elm
+	s.Size++
+
+}
+
+func (s *Stack) Pop() (any, bool) {
+	s.lock.Lock()
+	defer s.lock.Unlock()
+
+	if s.top == nil {
+		return nil, false
+	}
+
+	elm := s.top.Data
+
+	temp := s.top
+	s.top = s.top.next
+	temp.next = nil
+	s.Size--
+
+	return elm, true
+}
+
+func (s *Stack) IsEmpty() bool {
+	return s.top == nil
+}
+
+func NewStack() *Stack {
 	return &Stack{
-		Max: m, 
-		Top: 0, 
-		Items: make([]int, m),
-	}
-}
-
-func (s *Stack) Push(item int) bool {
-	if s.Top==s.Max {
-		return false
-	} else {
-		s.Items[s.Top] = item
-		s.Top += 1
-		return true
-	}
-}
-
-func (s *Stack) Pop() (int, bool) {
-	if s.Top==0 {
-		return 0, false
-	} else {
-		s.Top -= 1
-		item := s.Items[s.Top]
-		return item, true
+		lock: &sync.Mutex{},
 	}
 }
