@@ -1,20 +1,16 @@
 # Stack
 
-Stack data structure using Linked List (thread-safe)
+Stack data structure using slice (thread-safe)
 
 ```go
-type Stack struct {
-	lock *sync.Mutex
-	top  *Element
-	Size int
+type stack struct {
+	items  []itemType
+	rwLock sync.RWMutex
 }
 ```
 
-`Element` is a linked list node with type `any` so that it can take any type of value
+`itemType` is a `any` type so that it can take any type of value
 
 ```go
-type Element struct {
-	Data any
-	next *Element
-}
+type itemType any
 ```
