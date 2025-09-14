@@ -1,65 +1,46 @@
 package stack
 
-import (
-	"sync"
-)
+import "sync"
 
-type Element struct {
-	Data any
-	next *Element
+type itemType any
+
+type stack struct {
+	items  []itemType
+	rwLock sync.RWMutex
 }
 
-type Stack struct {
-	lock *sync.Mutex
-	top  *Element
-	Size int
-}
-
-func (s *Stack) Push(data any) {
-	s.lock.Lock()
-	defer s.lock.Unlock()
-
-	elm := &Element{
-		Data: data,
-		next: nil,
+func MakeStack() *stack {
+	return &stack{
+		items:  make([]itemType, 0),
+		rwLock: sync.RWMutex{},
 	}
-
-	if s.top == nil {
-		s.top = elm
-		s.Size++
-		return
-	}
-
-	elm.next = s.top
-	s.top = elm
-	s.Size++
-
 }
 
-func (s *Stack) Pop() (any, bool) {
-	s.lock.Lock()
-	defer s.lock.Unlock()
+func (s *stack) Push(item itemType) {
+	s.rwLock.Lock()
+	defer s.rwLock.Unlock()
+	s.items = append(s.items, item)
+}
 
-	if s.top == nil {
+func (s *stack) Pop() (*itemType, bool) {
+	s.rwLock.Lock()
+	defer s.rwLock.Unlock()
+	item, ok := s.Peek()
+	if !ok {
+		return nil, false
+	}
+	s.items = s.items[0 : len(s.items)-1]
+	return item, true
+}
+
+func (s *stack) isEmpty() bool {
+	return len(s.items) == 0
+}
+
+func (s *stack) Peek() (*itemType, bool) {
+	if s.isEmpty() {
 		return nil, false
 	}
 
-	elm := s.top.Data
-
-	temp := s.top
-	s.top = s.top.next
-	temp.next = nil
-	s.Size--
-
-	return elm, true
-}
-
-func (s *Stack) IsEmpty() bool {
-	return s.top == nil
-}
-
-func NewStack() *Stack {
-	return &Stack{
-		lock: &sync.Mutex{},
-	}
+	return &s.items[len(s.items)-1], true
 }

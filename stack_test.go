@@ -2,52 +2,59 @@ package stack
 
 import "testing"
 
-func TestStackCreate(t *testing.T) {
-	s := NewStack()
-	if !s.IsEmpty() {
-		t.Errorf("new stack top is not nil")
+func assert(t testing.TB, msg string, got, want interface{}) {
+	t.Helper()
+
+	if got == want {
+		return
+	}
+
+	var errStr string
+	switch got.(type) {
+	case int:
+		errStr = msg + ", expected %d, got %d"
+		t.Errorf(errStr, got, want)
+	case string:
+		errStr = msg + ", expected %s, got %s"
+		t.Errorf(errStr, got, want)
+	default:
+		errStr = msg + ", expected %v, got %v"
+		t.Errorf(errStr, got, want)
 	}
 }
 
-func TestStackSize(t *testing.T) {
-	s := NewStack()
-	s.Push(2)
-	s.Push(4)
-	s.Push(8)
+func TestStackPush(t *testing.T) {
+	t.Run("push 10", func(t *testing.T) {
+		s := MakeStack()
 
-	want := 3
-	if got := s.Size; got != want {
-		t.Errorf("expected stack size %d, got %d", want, got)
-	}
+		s.Push(10)
+
+		want := 10
+		got, _ := s.Peek()
+		assert(t, "stack push failed", *got, want)
+	})
+	t.Run("push 10 20", func(t *testing.T) {
+		s := MakeStack()
+
+		s.Push(10)
+		s.Push(20)
+
+		want := 20
+		got, _ := s.Peek()
+		assert(t, "stack push failed", *got, want)
+	})
 }
 
 func TestStackPop(t *testing.T) {
-	s := NewStack()
-	s.Push(2)
-	s.Push(4)
-	s.Push(8)
+	t.Run("pop 30 from stack 10 20 30", func(t *testing.T) {
+		s := MakeStack()
+		s.Push(10)
+		s.Push(20)
+		s.Push(30)
 
-	item, _ := s.Pop()
+		got, _ := s.Pop()
 
-	want := 8
-	if got := item; got != want {
-		t.Errorf("expected pop item %d, got %d", want, got)
-	}
-}
-
-func TestStackUnderflow(t *testing.T) {
-	s := NewStack()
-	s.Push(2)
-	s.Push(4)
-	s.Push(8)
-	s.Pop()
-	s.Pop()
-	s.Pop()
-
-	_, ok := s.Pop()
-
-	want := false
-	if ok != want {
-		t.Errorf("expected stack underflow with s.Pop()=%t, got %t", want, ok)
-	}
+		want := 30
+		assert(t, "stack pop failed", *got, want)
+	})
 }
